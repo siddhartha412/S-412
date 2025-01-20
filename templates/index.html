@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ ai_name }}</title>
+    
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        .typing {
+            display: inline-block;
+            width: 100%;
+            animation: typing 0.001s steps(30) 1s forwards, blink-caret 0.01s step-end infinite;
+            white-space: normal;
+            overflow-wrap: break-word;
+        }
+
+        .typing::after {
+            content: '|'; /* Pipe character */
+            animation: blink-caret 0.7s step-end infinite;
+            display: inline-block;
+            width: 8px;
+            height: 20px;
+            color: #A9BCF5;
+            background-image: linear-gradient(45deg, #A9BCF5 3%, #89ABE3 10%, #89ff29 1%, #00e1ff 91%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        @keyframes typing {
+            from {
+                width: 0;
+            }
+
+            to {
+                width: 100%;
+            }
+        }
+
+        @keyframes blink-caret {
+            50% {
+                border-color: transparent;
+            }
+        }
+
+        /* Ensure the form elements take full width and wrap */
+        #chat-form {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 0.5rem;
+        }
+
+        /* Textarea box with a fixed height for about 2 lines */
+        .chat-input {
+            flex-grow: 1;
+            padding: 0.75rem;
+            border-radius: 10px;
+            border: 1px solid #0055ff;
+            margin-right: 1rem;
+            background-color: #00000056;
+            color: white;
+            word-wrap: break-word;
+            min-width: 200px;
+            resize: none; /* Disable resizing */
+            height: 60px; /* Height of 2 lines */
+            line-height: 30px; /* Adjust line height for better fit */
+            font-size: 16px; /* Text size inside the textarea */
+            transition: border 0.3s ease, box-shadow 0.3s ease; /* Smooth transition for border and box-shadow */
+        }
+
+        /* Outline animation for when the textarea is focused */
+        .chat-input:focus {
+            outline: none;
+            border-color: #00bfff; /* Sky blue color */
+            box-shadow: 0 0 8px rgba(0, 191, 255, 0.6); /* Light blue glow effect */
+            animation: tapping 0.3s ease-in-out; /* Trigger tapping animation */
+        }
+
+        /* Tapping animation for the textarea */
+        @keyframes tapping {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(0.98); /* Slightly shrink */
+            }
+
+            100% {
+                transform: scale(1); /* Return to normal size */
+            }
+        }
+
+
+        /* Send button with fixed size */
+        .send-button {
+            padding: 0.75rem 1rem;
+            background-color: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            flex-shrink: 0; /* Prevent the button from shrinking */
+            min-width: 80px; /* Give the button a fixed minimum width */
+            max-width: 120px; /* Optionally set a max-width */
+        }
+
+        .send-button:hover {
+            background-color: #1d4ed8;
+        }
+
+        /* Chat messages */
+        .chat-message {
+            max-width: 5000px; /* Set max-width to 5000px */
+            word-wrap: break-word; /* Ensures text wraps */
+            word-break: break-word; /* Breaks long words onto the next line if necessary */
+            padding: 0.75rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            display: inline-block;
+            white-space: normal; /* Allow wrapping of text */
+        }
+
+        /* User message styles */
+        .user-message {
+            background-color: #2563eb;
+            color: white;
+            text-align: right;
+        }
+
+        /* AI message styles */
+        .ai-message {
+            background-color: #6c757d; /* Lightened AI background color */
+            color: white;
+        }
+
+        code {
+            background-color: #f4f4f4;
+            padding: 0.2rem 0.4rem;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            font-family: "Courier New", Courier, monospace;
+        }
+
+    </style>
+    <script>
+        function toggleTheme() {
+            document.documentElement.classList.toggle('dark');
+        }
+
+        $(document).ready(function() {
+            // Function to handle inline code formatting
+            function formatInlineCode(text) {
+                return text.replace(/`([^`]+)`/g, '<code>$1</code>');
+            }
+
+            // Handle form submission via AJAX
+            $("#chat-form").submit(function(event) {
+                event.preventDefault();  // Prevent page refresh
+                
+                var userInput = $("#user_input").val();
+
+                // Append user message immediately, formatted for inline code
+                $("#chat-messages").append(
+                    "<div class='mb-4 text-right'><div class='chat-message user-message'>" + formatInlineCode(userInput) + "</div></div>"
+                );
+                
+                // Clear input field
+                $("#user_input").val('');
+                
+                // Scroll to the bottom
+                $("#chat-messages").scrollTop($("#chat-messages")[0].scrollHeight);
+
+                // Simulate typing effect for AI response
+                $.ajax({
+                    url: "/",
+                    type: "POST",
+                    data: { user_input: userInput },
+                    success: function(response) {
+                        var aiResponse = response.response;
+
+                        // Create typing effect container
+                        var aiMessageContainer = $("<div>").addClass("mb-4 text-left").html(
+                            "<div class='chat-message ai-message'>" +
+                            "<span class='typing'></span></div>"
+                        );
+
+                        // Append to chat messages
+                        $("#chat-messages").append(aiMessageContainer);
+
+                        // Type out the AI response letter by letter with a fast delay
+                        var index = 0;
+                        var typingInterval = setInterval(function() {
+                            var currentText = aiMessageContainer.find(".typing").text();
+                            if (index < aiResponse.length) {
+                                aiMessageContainer.find(".typing").text(currentText + aiResponse.charAt(index));
+                                index++;
+                            } else {
+                                clearInterval(typingInterval); // Stop once done
+                                
+                                // After the typing completes, remove the pipe (|)
+                                aiMessageContainer.find(".typing").html(formatInlineCode(aiResponse)); // Format inline code and replace
+                            }
+                        }, 50); // Faster delay between typing each character
+
+                        // Scroll to the bottom after typing
+                        $("#chat-messages").scrollTop($("#chat-messages")[0].scrollHeight);
+                    },
+                    error: function(error) {
+                        console.error("Error:", error);
+                    }
+                });
+            });
+
+            // Submit form when the Enter key is pressed in the textarea (without Shift)
+            $("#user_input").on('keypress', function(e) {
+                if (e.which === 13 && !e.shiftKey) {
+                    e.preventDefault();  // Prevent a new line in textarea
+                    $("#chat-form").submit();  // Trigger form submission
+                }
+            });
+
+            // Activate the text area on pressing the "/" key
+            $(document).on('keydown', function(e) {
+                if (e.key === '/') {
+                    e.preventDefault();
+                    $("#user_input").focus();  // Focus the input field
+                }
+            });
+        });
+    </script>
+</head>
+
+<body class="bg-gray-100 dark:bg-gray-900 h-screen flex items-center justify-center">
+    <div class="w-full max-w-4xl bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden flex flex-col h-full">
+        <!-- Header Section -->
+        <div class="bg-blue-500 dark:bg-blue-700 text-white p-4 text-center">
+            <h1 class="text-xl font-semibold">Welcome to {{ ai_name }}!</h1>
+        </div>
+
+        <!-- Chat Messages Section -->
+        <div class="flex-1 p-4 overflow-y-auto" id="chat-messages">
+            {% if user_input %}
+                <div class="mb-4 text-right">
+                    <div class="chat-message user-message">
+                        <p>{{ user_input }}</p>
+                    </div>
+                </div>
+                <div class="mb-4 text-left">
+                    <div class="chat-message ai-message">
+                        <p>{{ response }}</p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Input Form Section -->
+        <form id="chat-form" class="p-4 bg-gray-200 dark:bg-gray-700 flex flex-wrap">
+            <textarea name="user_input" id="user_input" placeholder="Type a message..." required
+                class="chat-input"></textarea>
+            <button type="submit"
+                class="send-button">
+                Send
+            </button>
+        </form>
+    </div>
+
+    <!-- Clear browser history to avoid resubmission -->
+    <script>
+        if (window.history.replaceState) {
+            window.history.replaceState(null, null, window.location.href);
+        }
+    </script>
+</body>
+
+</html>
