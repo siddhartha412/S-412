@@ -1,7 +1,6 @@
 
-# S-412 Flask Application
-
-A Flask-based web application integrated with the Groq API for chat interactions. This application is developed by Siddhartha412 and features the AI named **S-412**, a chill conversational assistant.
+# S-412 - Personal AI
+A Flask-based Personal AI integrated with the Groq API for chat interactions. This application is developed by Siddhartha412 and features the AI named **S-412**, a chill conversational assistant.
 
 ---
 
@@ -15,6 +14,7 @@ A Flask-based web application integrated with the Groq API for chat interactions
 
 ## Requirements
 - Python 3.8 or higher
+
 - Virtual environment (optional but recommended)
 
 ---
