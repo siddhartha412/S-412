@@ -40,7 +40,12 @@ A Flask-based Personal AI integrated with the Groq API for chat interactions. Th
    pip install -r requirements.txt
    ```
 
-4. **Set Up Environment Variables**
+4. **Taking Groq Api**
+    Take a api from
+   [Groq Website](https://console.groq.com/keys)
+
+   
+5. **Set Up Environment Variables**
    Create a `.env` file in the project root and add your Groq API key:
    ```env
    GROQ_API_KEY=your-groq-api-key
