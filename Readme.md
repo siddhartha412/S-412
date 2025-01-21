@@ -68,7 +68,7 @@ A Flask-based Personal AI integrated with the Groq API for chat interactions. Th
 
 3. **Interact with S-412**
    - Enter your prompt in the input field and submit.
-   - Receive responses from the AI in JSON format.
+   - Just chill and chat
 
 ---
 
